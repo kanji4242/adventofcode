@@ -16,9 +16,9 @@ def day2(file):
             opponent, you = line.rstrip().split(" ")
             score = score + labels_you.index(you) + 1
             if labels_opponent.index(opponent) == labels_you.index(you):
-                score = score + 3
+                score += 3
             elif (labels_you.index(you) + 1) % 3 == labels_opponent.index(opponent):
-                score = score + 6
+                score += 6
 
     print(score)
 
