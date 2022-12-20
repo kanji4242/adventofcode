@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# https://adventofcode.com/2022/day/6
+#
+
+import sys
+
+
+def display_tree(path, root):
+    for entry in root.keys():
+        if entry == "..":
+            continue
+        if type(root[entry]) is dict:
+            display_tree(path + "/" + entry, root[entry])
+        elif type(root[entry]) is int:
+            print(path + "/" + entry, root[entry])
+
+
+def day7_1(file):
+    ls_command = False
+    root = {}
+    pwd = root
+    with open(file) as f:
+        for line in f:
+            line = line.rstrip()
+            if line.startswith("$ ls"):
+                ls_command = True
+
+            elif line.startswith("$ cd"):
+                if line[5:].strip() == "..":
+                    pwd = pwd[".."]
+                elif line[5:].strip() in pwd:
+                    pwd = pwd[line[5:].strip()]
+
+            elif ls_command is True:
+                size_of_dir, entry = line.split(" ")
+                if size_of_dir.isdigit():
+                    pwd[entry] = int(size_of_dir)
+                elif size_of_dir == "dir":
+                    pwd[entry] = {"..": pwd}
+
+    print(pwd)
+    display_tree("", root)
+
+
+def day7_2(file):
+    with open(file) as f:
+        for line in f:
+            pass
+
+
+if __name__ == '__main__':
+    day7_1(sys.argv[1])
+    #day7_2(sys.argv[1])
+
