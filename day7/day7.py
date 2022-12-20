@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# https://adventofcode.com/2022/day/6
+# https://adventofcode.com/2022/day/7
 #
 
 import sys
