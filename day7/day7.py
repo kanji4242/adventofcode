@@ -18,22 +18,18 @@ def display_tree(path, root):
 
 
 def day7_1(file):
-    ls_command = False
     root = {}
     pwd = root
     with open(file) as f:
         for line in f:
             line = line.rstrip()
-            if line.startswith("$ ls"):
-                ls_command = True
-
-            elif line.startswith("$ cd"):
-                if line[5:].strip() == "..":
-                    pwd = pwd[".."]
-                elif line[5:].strip() in pwd:
-                    pwd = pwd[line[5:].strip()]
-
-            elif ls_command is True:
+            if line.startswith("$ "):
+                if line.startswith("$ cd"):
+                    if line[5:].strip() == "..":
+                        pwd = pwd[".."]
+                    elif line[5:].strip() in pwd:
+                        pwd = pwd[line[5:].strip()]
+            else:
                 size_or_dir, entry = line.split(" ")
                 if size_or_dir.isdigit():
                     pwd[entry] = int(size_or_dir)
