@@ -34,10 +34,10 @@ def day7_1(file):
                     pwd = pwd[line[5:].strip()]
 
             elif ls_command is True:
-                size_of_dir, entry = line.split(" ")
-                if size_of_dir.isdigit():
-                    pwd[entry] = int(size_of_dir)
-                elif size_of_dir == "dir":
+                size_or_dir, entry = line.split(" ")
+                if size_or_dir.isdigit():
+                    pwd[entry] = int(size_or_dir)
+                elif size_or_dir == "dir":
                     pwd[entry] = {"..": pwd}
 
     print(pwd)
