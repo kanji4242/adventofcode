@@ -28,6 +28,9 @@ def day5(file):
             print("".join([f"[{stack[i]}] " if i < len(stack) else " "*4 for stack in stacks]))
 
         print("".join([f"{i + 1:-2d}  " for i in range(len(stacks))]))
+        print("")
+
+    print("".join([st[-1] for st in stacks]))
 
 
 if __name__ == '__main__':
