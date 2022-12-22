@@ -14,8 +14,7 @@ def day3_1(file):
 
     with open(file) as f:
         for line in f:
-            rucksack1 = {x: True for x in line.rstrip()[:len(line) >> 1]}
-            commmon_items = list(set([x for x in line.rstrip()[len(line) >> 1:] if x in rucksack1.keys()]))
+            commmon_items = list(set(line.rstrip()[:len(line) >> 1]) & set(line.rstrip()[len(line) >> 1:]))
             sum_priorities = sum_priorities + sum([priorities.index(x) + 1 for x in commmon_items])
 
     print(sum_priorities)
@@ -30,12 +29,8 @@ def day3_2(file):
         for line in f:
             three_rucksacks.append(line.rstrip())
             if len(three_rucksacks) == 3:
-                commmon_items = []
-                rucksack1 = {x: True for x in three_rucksacks[0]}
-                rucksack2 = {x: True for x in three_rucksacks[1]}
-                commmon_items.extend([x for x in three_rucksacks[2]
-                                      if x in rucksack1.keys() and x in rucksack2.keys()])
-                sum_priorities = sum_priorities + sum([priorities.index(x) + 1 for x in list(set(commmon_items))])
+                commmon_items = list(set(three_rucksacks[0]) & set(three_rucksacks[1]) & set(three_rucksacks[2]))
+                sum_priorities = sum_priorities + sum([priorities.index(x) + 1 for x in commmon_items])
                 three_rucksacks = []
 
     print(sum_priorities)
