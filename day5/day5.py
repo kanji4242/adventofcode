@@ -63,7 +63,6 @@ def day5_2(file):
     print("".join([st[-1] for st in stacks]))
 
 
-
 if __name__ == '__main__':
     day5_1(sys.argv[1])
     day5_2(sys.argv[1])
