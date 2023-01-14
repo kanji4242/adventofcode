@@ -62,8 +62,7 @@ def day13_2(file):
     offset_divisor = 0
     decoder_key = 1
 
-    for index in range(len(packets)):
-        packet = packets[index]
+    for index, packet in enumerate(packets):
         if compare(packet, divisors[offset_divisor]) > 0:
             decoder_key *= index + offset_divisor + 1
             offset_divisor += 1
