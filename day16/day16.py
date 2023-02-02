@@ -41,9 +41,9 @@ class Bot:
         other_bots = []
 
         if self.minutes_left > 0:
-            # Find candidate valves :
-            #   should not have been visited, should have flow rate > 0, should be the current valve
-            # For each, we get : (the valve, the distance from current valve)
+            # Find candidate valves with the following constrains :
+            #   should not have been visited, should have a flow rate > 0, should not be the current valve
+            # For each occurrence found, we get : (the valve, the distance from current valve)
             valves_candidates = [(self.valves[ind], self.distances[self.valves_index.index(self.current_valve_name)][
                 self.valves_index.index(ind)]) for ind in self.valves_index
                                  if ind not in self.open_valves
@@ -68,16 +68,19 @@ class Bot:
                 if self.minutes_left - distance > 0:
                     # Determine the released pressure when reaching the valve
                     new_released_pressure = self.released_pressure + self.current_pressure * distance
+
                     # Create a new bot to explore this new path by recursion
                     new_bot = Bot(self.distances, self.valves, self.valves_index, valve.name, self.current_pressure,
                                   new_released_pressure, self.open_valves[:] + [self.current_valve_name],
                                   self.minutes_left - distance)
                     new_bot.history = self.history[:] + [valve.name]
+
                     other_bots.append(new_bot)
 
             # This bot won't move anymore, so determine the final released pressure according to the minutes left
-            # and return it with the new bots created
+            # and return it with the new bots previously created
             return self.released_pressure + self.current_pressure * self.minutes_left, other_bots
+
         else:
             # If no minute left, simply returns the released pressure
             return self.released_pressure, []
@@ -113,12 +116,13 @@ def graph_to_matrix(valves, valves_index):
 
 
 def floyd_warshall(valves, valves_index):
-    # Implement Floyd-Warshall algorithm to find all shortest paths between two nodes
+    # Implement the Floyd-Warshall algorithm to find all shortest paths between two nodes
     matrix = graph_to_matrix(valves, valves_index)
     size = len(matrix)
 
-    # Create the matrix and fill it with "infinity" value
-    # "infinity" any value that will be higher than the highest possible distance, size * size is such a possible value
+    # Create the distances matrix and fill it with "infinity" value
+    # "infinity" is any value that will be higher than the highest possible distance, size * size is such
+    # a possible value
     infinity = size * size
     distances = np.ndarray((size, size), dtype=int)
     distances.fill(infinity)
@@ -136,12 +140,14 @@ def floyd_warshall(valves, valves_index):
                 if distances[i][k] + distances[k][j] < distances[i][j]:
                     distances[i][j] = distances[i][k] + distances[k][j]
 
-    # Return distances matrix: distances[start_index][end_index] = distance
+    # Return the distances matrix, you can find the distance from any valve to any other valve like this:
+    # distance = distances[start_valve_index][end_valve_index]
     return distances
 
 
 def day16_1(file):
     # Get the valve dict from input file and index for converting valve name to index number and vice versa
+    # (will be useful for the distances matrix after)
     valves, valves_index = parse_valves(file)
     print(valves, valves_index)
     distances = floyd_warshall(valves, valves_index)
@@ -155,14 +161,17 @@ def day16_1(file):
     final_results = []
     while not queue.empty():
         bot = queue.get()
-        # Run the bot and get its returns
+        # Run a bot from the queue and get its returns
         released_pressure, other_bots = bot.go_through()
 
-        # Add the released pressure for this bot, and place other generated bots into the queue
+        # Add the released pressure for this bot
         final_results.append(released_pressure)
+
+        # If we have other bots, put them in the queue
         for b in other_bots:
             queue.put(b)
 
+    # Print the best released pressure
     print(max(sorted(final_results, reverse=True)))
 
 
@@ -184,9 +193,11 @@ def day16_2(file):
         # Run the bot and get its returns
         released_pressure, other_bots = bot.go_through()
 
-        # Add the released pressure for this bot, and place other generated bots into the queue
+        # Add the released pressure for this bot
         # We also get the visited valves path available from the history
         final_results.append((bot.history, released_pressure))
+
+        # If we have other bots, put them in the queue
         for b in other_bots:
             queue.put(b)
 
@@ -200,7 +211,7 @@ def day16_2(file):
                 if fr1[1] + fr2[1] == 2031:
                     print(fr1, fr2)
 
-    # Print the best score
+    # Print the best released pressure
     print(max(final_results2))
 
 
