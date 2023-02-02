@@ -72,6 +72,7 @@ class Bot:
                     new_bot = Bot(self.distances, self.valves, self.valves_index, valve.name, self.current_pressure,
                                   new_released_pressure, self.open_valves[:] + [self.current_valve_name],
                                   self.minutes_left - distance)
+                    new_bot.history = self.history[:] + [valve.name]
                     other_bots.append(new_bot)
 
             # This bot won't move anymore, so determine the final released pressure according to the minutes left
@@ -166,10 +167,43 @@ def day16_1(file):
 
 
 def day16_2(file):
-    pass
+    # Get the valve dict from input file and index for converting valve name to index number and vice versa
+    valves, valves_index = parse_valves(file)
+    print(valves, valves_index)
+    distances = floyd_warshall(valves, valves_index)
+    print(distances)
+
+    queue = Queue()
+    # Create initial bot that starts at "AA" valve
+    starting_bot = Bot(distances, valves, valves_index, "AA", 0, 0, [], 26)
+    queue.put(starting_bot)
+
+    final_results = []
+    while not queue.empty():
+        bot = queue.get()
+        # Run the bot and get its returns
+        released_pressure, other_bots = bot.go_through()
+
+        # Add the released pressure for this bot, and place other generated bots into the queue
+        # We also get the visited valves path available from the history
+        final_results.append((bot.history, released_pressure))
+        for b in other_bots:
+            queue.put(b)
+
+    # Compare all couples of 2 paths and find the ones that don't have any valve in common in them
+    final_results2 = []
+    for fr1 in final_results:
+        for fr2 in final_results:
+            if len(set(fr1[0]) & set(fr2[0])) == 0:
+                final_results2.append(fr1[1] + fr2[1])
+                # When found, add the 2 released pressures and store the result
+                if fr1[1] + fr2[1] == 2031:
+                    print(fr1, fr2)
+
+    # Print the best score
+    print(max(final_results2))
 
 
 if __name__ == '__main__':
     day16_1(sys.argv[1])
-    # day16_2(sys.argv[1])
-
+    day16_2(sys.argv[1])
