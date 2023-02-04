@@ -20,16 +20,21 @@ class Chamber:
     CELL_FALLING_ROCK = 2
     CHAMBER_SYMBOLS = ['.', '#', '@']
 
-    def __init__(self):
+    def __init__(self, rocks, jet_patterns, max_rocks):
         # Max height is set to 1 because we will add a bedrock layer at y=0
-        self.max_height = 1
+        self.jet_patterns = jet_patterns
+        self.rocks = rocks
+        self.max_rocks = max_rocks
+
         self._init_grid()
+        self.max_height = 1
+
         self.rock = None
         self.rock_coords = None
 
     def _init_grid(self):
         # Init grid and fill it with void
-        self.grid = np.ndarray((7, 5000), dtype=int)
+        self.grid = np.ndarray((7, self.max_rocks * 4), dtype=int)
         self.grid.fill(self.CELL_VOID)
 
         # Fill the ground (at y=0) with a bedrock of frozen rock to help the falling algorithm
@@ -104,6 +109,27 @@ class Chamber:
         print("max height:", self.max_height - 1)
         print("")
 
+    def run(self):
+        jet_patterns_index = 0
+        rock_index = 0
+
+        while rock_index < 2022:
+            self.add_rock(self.rocks[rock_index % len(self.rocks)])
+            # chamber.display_chamber()
+
+            while self.blow_and_fall_rock(self.jet_patterns[jet_patterns_index]):
+                jet_patterns_index = (jet_patterns_index + 1) % len(self.jet_patterns)
+                # chamber.display_chamber()
+
+            jet_patterns_index = (jet_patterns_index + 1) % len(self.jet_patterns)
+            self.freeze_rock()
+            # chamber.display_chamber()
+
+            rock_index += 1
+
+        # Returns max height minus 1 because we had a bedrock layer added
+        return self.max_height - 1
+
 
 def init_rocks():
     # Initialize all rock type
@@ -120,28 +146,10 @@ def day17_1(file):
     with open(file) as f:
         jet_patterns = list(f.readline().strip())
 
-    jet_patterns_index = 0
-    rock_index = 0
-
     rocks = init_rocks()
-    chamber = Chamber()
+    chamber = Chamber(rocks, jet_patterns, 2022)
 
-    while rock_index < 2022:
-        chamber.add_rock(rocks[rock_index % len(rocks)])
-        #chamber.display_chamber()
-
-        while chamber.blow_and_fall_rock(jet_patterns[jet_patterns_index]):
-            jet_patterns_index = (jet_patterns_index + 1) % len(jet_patterns)
-            #chamber.display_chamber()
-
-        jet_patterns_index = (jet_patterns_index + 1) % len(jet_patterns)
-        chamber.freeze_rock()
-        #chamber.display_chamber()
-
-        rock_index += 1
-
-    # Print max height minus 1 because we had a bedrock layer added
-    print(chamber.max_height - 1)
+    print(chamber.run())
 
 
 def day17_2(file):
