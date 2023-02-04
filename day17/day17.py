@@ -21,9 +21,9 @@ class Chamber:
     CHAMBER_SYMBOLS = ['.', '#', '@']
 
     def __init__(self):
-        self._init_grid()
-        # Max height is set to 1 because we will add bedrock layer (at y=0)
+        # Max height is set to 1 because we will add a bedrock layer at y=0
         self.max_height = 1
+        self._init_grid()
         self.rock = None
         self.rock_coords = None
 
@@ -32,17 +32,17 @@ class Chamber:
         self.grid = np.ndarray((7, 5000), dtype=int)
         self.grid.fill(self.CELL_VOID)
 
-        # Fill the ground (y=0) with frozen rock to ease the falling algorithm
+        # Fill the ground (at y=0) with a bedrock of frozen rock to help the falling algorithm
         # This explains why the max height is set to 1
         for x in range(self.grid.shape[0]):
             self.grid[x][0] = self.CELL_FROZEN_ROCK
 
     def add_rock(self, rock):
-        # Add new rock set its coordinates three units above the highest rock
+        # Add new rock set its coordinates two units away from the left and three units above the highest rock
         self.rock = rock
         self.rock_coords = [2, self.max_height + 3]
 
-    def blow_and_fall_rock(self, direction, jet_patterns_index):
+    def blow_and_fall_rock(self, direction):
         # Convert the direction symbol (< or >) to "vector" direction
         direction = -1 if direction == "<" else 1
 
@@ -130,7 +130,7 @@ def day17_1(file):
         chamber.add_rock(rocks[rock_index % len(rocks)])
         #chamber.display_chamber()
 
-        while chamber.blow_and_fall_rock(jet_patterns[jet_patterns_index], jet_patterns_index):
+        while chamber.blow_and_fall_rock(jet_patterns[jet_patterns_index]):
             jet_patterns_index = (jet_patterns_index + 1) % len(jet_patterns)
             #chamber.display_chamber()
 
