@@ -51,14 +51,15 @@ class Chamber:
         self.rock_coords = [2, self.max_height + 3]
 
     def blow_and_fall_rock(self, direction):
-        # Convert the direction symbol (< or >) to "vector" direction
+        # Move the rock according to jet and try to fall it down
+        # Convert the jet direction symbol (< or >) to "vector" direction
         direction = -1 if direction == "<" else 1
 
-        # Push the rock pushed by a jet
+        # Push the rock by the jet direction
         can_move = True
         for c in self.rock.cells:
             new_x = self.rock_coords[0] + c[0] + direction
-            # The rock cannot move into the walls, floor, or a frozen rock
+            # The rock cannot move through the walls, floor, or a frozen rock
             if new_x < 0 or new_x >= self.grid.shape[0]\
                     or self.grid[new_x][self.rock_coords[1] + c[1]] == self.CELL_FROZEN_ROCK:
                 can_move = False
@@ -96,6 +97,7 @@ class Chamber:
         else:
             self.max_height = max(self.max_height, self.rock_coords[1] + self.rock.shape[1])
 
+        # The rock has been treated, so empty its datas
         self.rock_coords = None
         self.rock = None
 
