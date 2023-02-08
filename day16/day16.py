@@ -104,6 +104,14 @@ def parse_valves(file):
 
 def graph_to_matrix(valves, valves_index):
     # Convert valves graph to matrix
+    #  Example input:
+    #  valve={'A': Valve(A -> ['B', 'C']), 'B': Valve(B -> ['C']), 'C': Valve(C -> ['A'])}
+    #  valves_index=['A', 'B', 'C']
+    #
+    #  Output a ndarray matrix like :
+    #  [[0 1 1]
+    #   [0 0 1]
+    #   [1 0 0]]
     size = len(valves_index)
     matrix = np.ndarray((size, size), dtype=int)
     matrix.fill(0)
