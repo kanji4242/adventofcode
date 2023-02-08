@@ -46,7 +46,7 @@ class Chamber:
             self.grid[x][0] = self.CELL_FROZEN_ROCK
 
     def add_rock(self, rock):
-        # Add new rock set its coordinates two units away from the left and three units above the highest rock
+        # Add new rock and set its coordinates two units away from the left and three units above the highest rock
         self.rock = rock
         self.rock_coords = [2, self.max_height + 3]
 
