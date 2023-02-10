@@ -59,7 +59,7 @@ def is_covered(point, sensors):
     # Determine if a point is within the area covered of at least one sensor given in the list
     # The area of sensor depend on its beacon and their Manhattan distance and has a rhombus shape.
     # For instance, a sensor located at [4, 4] and its beacon located at [2, 6] have a Manhattan distance of 4
-    # Their area will look like a rhombus centered at [4, 4] with all its 4 edges locate 4 units away.
+    # Their area will look like a rhombus centered at [4, 4] with all its 4 edges located 4 units away.
     # Every point marked "#" has a Manhattan distance less or equal to 4 with the sensor.
     # Given this area, a point X at [0, 2] will be outside the area, while a point Y at [5, 6] will be inside.
     # ("S" is the sensor, "B" is the beacon, "X" and "Y" are the 2 points mentioned above)
@@ -86,7 +86,7 @@ def is_covered(point, sensors):
 
 
 def get_sensors_boundary(sensors, with_md=False):
-    # Determine the minimum and the maximum coordinates for a list sensors
+    # Determine the minimum and the maximum coordinates for a list of sensors
     # if with_md is defined, consider the area covered with its beacon and using its Manhattan distance
     if with_md:
         return (min([s[0] - get_manhattan_distance(s) for s in sensors]),
