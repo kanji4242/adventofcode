@@ -61,10 +61,11 @@ def parse_coords(file):
             coord_x, coord_y, coord_z = [int(x) for x in line.strip().split(',')]
             coords.append((coord_x, coord_y, coord_z))
 
-        # Prepare a grid from this list, but before, find the max value (there are no negative values) and 4
-        # to the 3 dimensions in order to enclose the lava droplet into an air "shell". This simplifies the surface
-        # area algorithm by avoid special cases related to the border and index in the grid.  This "shell" also
-        # ensure that the cell at [0, 0, 0] won't be a lava cell which will be important for part2.
+        # Prepare a grid from this list, but before, find the max values (there are no negative values) for the 3
+        # dimensions and add 4 in order to enclose the lava droplet into an air "shell". This simplifies the surface
+        # area algorithm by avoid special cases related to the border and index in the grid. This "shell" also
+        # ensure that the cell at [0, 0, 0] won't be a lava cell which will be important for fill algorithm used
+        # in part2.
         max_x, max_y, max_z = max([c[0] for c in coords]) + 4, \
                                max([c[1] for c in coords]) + 4, \
                                max([c[2] for c in coords]) + 4
@@ -83,7 +84,7 @@ def parse_coords(file):
 def find_surface_area(grid, value):
     surface = 0
 
-    # We consider every 2 consecutive slides (2 2x2 matrices) for each axis X, Y and Z and subtract them.
+    # We consider every 2 consecutive slices (2 2x2 matrices) for each axis X, Y and Z and subtract them.
     # An exposed face imply 2 adjacent cells, one with air and the other with lava, or the reverse
     # In terms of numeric value, their difference will be equal to CELL_AIR - CELL_LAVA
     # or CELL_LAVA - CELL_AIR, other difference value won't be considered and won't be counted for
