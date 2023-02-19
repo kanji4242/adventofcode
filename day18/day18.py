@@ -22,10 +22,11 @@ def display_slice(grid):
 
 
 def fill_exterior(grid):
-    # Only for part2, mark cell filled by air and mark them as exterior air
+    # Only for part2, mark cell filled by air and mark them as exterior air (CELL_EXT_AIR value)
     queue = Queue()
 
-    # Start cell [0, 0, 0] which won't be a lava cell (thanks the "shell" added)
+    # We process each cell recursively, but we use the queue method to avoid a stack overflow
+    # Start at cell [0, 0, 0] which won't be a lava cell (thanks the air "shell" added)
     queue.put((0, 0, 0))
 
     # Get a cell until the queue is exhausted
@@ -36,7 +37,7 @@ def fill_exterior(grid):
         if grid[coord[0]][coord[1]][coord[2]] == CELL_AIR:
             grid[coord[0]][coord[1]][coord[2]] = CELL_EXT_AIR
 
-            # Add all neighbor cells to the queue and all 3 axis (up, down, front, back, left, right)
+            # Add all neighbor cells to the queue in all 3 axis (up, down, front, back, left, right)
             if coord[0] + 1 < grid.shape[0]:
                 queue.put((coord[0] + 1, coord[1], coord[2]))
             if coord[0] - 1 < grid.shape[0]:
@@ -76,6 +77,7 @@ def parse_coords(file):
 
     # Insert the droplet coordinates
     for coord in coords:
+        # We add 2 to the coordinates for the air "shell"
         grid[coord[0] + 2][coord[1] + 2][coord[2] + 2] = CELL_LAVA
 
     return grid
@@ -91,17 +93,14 @@ def find_surface_area(grid, value):
     # the surface area.
     # We can use the absolute value to handle both cases at the same time
     # For part2, CELL_EXT_AIR will be considered instead of CELL_AIR
+    # Note that CELL_AIR, CELL_EXT_AIR and CELL_LAVA numeric values have been well-chosen to have a unique
+    # value when computing their difference
     for x in range(grid.shape[0]):
         surface += np.count_nonzero(np.absolute(grid[x, :, :] - grid[x - 1, :, :]) == value)
     for y in range(grid.shape[1]):
         surface += np.count_nonzero(np.absolute(grid[:, y, :] - grid[:, y - 1, :]) == value)
     for z in range(grid.shape[2]):
         surface += np.count_nonzero(np.absolute(grid[:, :, z] - grid[:, :, z - 1]) == value)
-
-    # for z in range(grid.shape[2]):
-    #     print("slice", z)
-    #     display_slice(grid[:, :, z])
-    #     print("")
 
     return surface
 
