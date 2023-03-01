@@ -50,7 +50,7 @@ We will complete our setup with the following set of constrains:
 1/ The amount of robots of each type on each minute is limited by the materials available to build them until that
 minute. That is, the total amount of materials collected until that point minus the materials used to build other
 types of robots, divided by the cost. We have to take into account that we start with one ore robot, so we do not
-need to subtract its cost. For example, for geode robots costs 2 ores and 7 obisdians so we have the following two
+need to subtract its cost. For example, for geode robots costs 2 ores and 7 obsidians, so we have the following two
 inequalities for the first example blueprint. The first one is for ore and the second one is for obsidian:
 
   Rgeo_i <= 1/2 (sum from j=1 to i-2 of all Rore_j) - (4(Rore_i-1 - 1) + 2*Rclay_i-1 + 3*Robs_i-1)
@@ -71,9 +71,9 @@ previous step. For example, for ore robots:
   Rore_i−1 <= Rore_i
      ==> Rore_i−1 - Rore_i <= 0
 
-4/ We also define the starting conditions (we just have 1 ore robot) using equalities:
+4/ We also define the starting conditions (we just have 1 ore robot) using this equalities:
 
-  Rore_1 = 1, Rclay_1 = 0, Robs_1 = 0, Rgeo_1 = 0
+  Rore_1 = 1, Rclay_1 = 0, Robs_1 = 0, Rgeo_1 = 0 and 0 for all others variables
   
 """
 
@@ -86,6 +86,12 @@ from typing import List
 
 
 class ResourceSet(list):
+    """
+    ResourceSet is a set of the 4 resources indexed as follows : ore(0), clay(1), obsidian(2) and geode(3).
+    Quantities are initialized to 0. You can access or set quantity by its index number or its name.
+    For instance, to set 3 for clay to a ResourceSet named "rs", you can do:
+      rs.clay = 3 or rs[1] = 3
+    """
     RESOURCES = ["ore", "clay", "obsidian", "geode"]
 
     def __init__(self):
@@ -112,7 +118,21 @@ class ResourceSet(list):
 
 
 class RobotMatrix(list):
+    """
+    RobotMatrix is a list of ResourceSet instances. The size of the list is linked to the number of minutes given
+    by the puzzle (24 or 32).
+    This a convenient way to assign coefficient to our set of variables described above. The final list can be
+    obtained with the as_list() method which will be used to build the matrix for ILP
+    For instance, to set 12 for obsidian at minute 10 to a RobotMatrix named "rm", you can do:
+      rm[9][2] = 12 or rm[9].obsidian = 12
+    With this quantity being set, calling the method as_list() will yield the following list of size "4 * size" with:
+      [ "size" * 0s (ore),
+        "size" * 0s (clay),
+        9 * 0s (obsidian), 12 (our previous set), "size - 10" * 0s (obsidian),
+        "size" * 0s (geode) ]
+    """
     def __init__(self, size):
+        # Set a list with "size" ResourceSet instances
         super().__init__([ResourceSet() for _ in range(size)])
 
     def __str__(self):
@@ -123,22 +143,23 @@ class RobotMatrix(list):
         return output
 
     def as_list(self):
+        # Returns the matrix which can be injected in the ILP process
         size = self[0].size
         return [int(self[x][y]) for y in range(size) for x in range(len(self))]
 
 
 class Robot:
-    def __init__(self, type_label_or_id: str, cost: ResourceSet):
-        if type(type_label_or_id) is int is int:
-            self.type_id = int(type_label_or_id)
-            self.type = ResourceSet.RESOURCES[self.type_id]
-
-        elif type(type_label_or_id) is str and type_label_or_id in ResourceSet.RESOURCES:
-            self.type = type_label_or_id
-            self.type_id = ResourceSet.RESOURCES.index(type_label_or_id)
-
+    """
+    Robot contains information about its characteristics and contains:
+     - its type
+     - its cost in terms of resources (a ResourceSet instance).
+    """
+    def __init__(self, type_label: str, cost: ResourceSet):
+        if type_label in ResourceSet.RESOURCES:
+            self.type = type_label
+            self.type_id = ResourceSet.RESOURCES.index(type_label)
         else:
-            raise TypeError(f"Unknown robot type {type_label_or_id}")
+            raise TypeError(f"Unknown robot type {type_label}")
 
         self.cost = cost
 
@@ -147,6 +168,11 @@ class Robot:
 
 
 class Blueprint:
+    """
+    Blueprint contains informations about a blueprint and contains:
+     - its ID
+     - all the 4 robots characteristics
+    """
     def __init__(self, bp_id: int, robots: List[Robot]):
         self.id = bp_id
         self.robots = robots
@@ -156,6 +182,9 @@ class Blueprint:
 
 
 def parse_blueprints(file):
+    """
+    Build and return a list of Blueprint instances set with their ID and their robots characteristics
+    """
     blueprints = []
     with open(file) as f:
         content = f.read().replace("\n", " ")
@@ -185,52 +214,84 @@ def process_blueprint(blueprint, max_minutes=24):
     # Minimize this expression
     # We do not care about ore, clay, obsidian robots, only geode robots set with coefficients
     # Since we want to maximize the geode robots, we use negative coefficients
+    # This is will generate the matrix for geode with { -T, -T+1, ... , -1 } as described abode.
+    # All other resources matrices will be set to 0
     minimize = RobotMatrix(max_minutes)
     for i in range(max_minutes):
         minimize[i].geode = -(max_minutes - i)
 
     # Current number of robots never higher than the total materials needed minus used
+    # Based on the example formula described above:
+    #   2*Rgeo_i - Rore_1 - Rore_2 - ... - Rore_i-2 + 4*Rore_i-1 + 2*Rclay_i-1 + 3*Robs_i-1 <= 4
     for robot in blueprint.robots:
         for cost_id in range(len(robot.cost)):
             if robot.cost[cost_id] > 0:
                 print(robot, robot.cost[cost_id])
                 for i in range(1, max_minutes):
                     rm = RobotMatrix(max_minutes)
+                    # Set: 2*Rgeo_i
                     rm[i][robot.type_id] = robot.cost[cost_id]
 
+                    # Set: 4*Rore_i-1 + 2*Rclay_i-1 + 3*Robs_i-1
                     for type_id, cost in [(r.type_id, r.cost[cost_id]) for r in blueprint.robots
                                           if r.type_id != robot.type_id]:
                         rm[i - 1][type_id] = cost
 
+                    # Set: - Rore_1 - Rore_2 - ... - Rore_i-2
                     for j in range(i - 1):
                         rm[j][cost_id] = -1
+
+                    # Append to the inequalities matrices list (using as_list())
                     lhs_ineq.append(rm.as_list())
+
+                    # Set: <= 4
                     ore_id = ResourceSet.RESOURCES.index("ore")
                     rhs_ineq.append(0 if cost_id != ore_id else int(blueprint.robots[ore_id].cost.ore))
 
     # Current number of robots at most 1 more than in previous step
+    # Based on the example formula described above:
+    #   Rore_i + Rclay_i + Robs_i + Rgeo_i - Rore_i-1 - Rclay_i-1 - Robs_i-1 - Rgeo_i-1 <= 1
     for i in range(1, max_minutes):
         rm = RobotMatrix(max_minutes)
         for robot in blueprint.robots:
+            # Set: Rore_i - Rore_i-1
             rm[i][robot.type_id] = 1
             rm[i - 1][robot.type_id] = -1
+
+        # Append to the inequalities matrices list (using as_list())
         lhs_ineq.append(rm.as_list())
+
+        # Set: <= 1
         rhs_ineq.append(1)
 
     # Not possible to lose robots
+    # Based on the example formula described above:
+    #   Rore_i−1 - Rore_i <= 0
     for robot in blueprint.robots:
         for i in range(1, max_minutes):
             rm = RobotMatrix(max_minutes)
+            # Set: Rore_i−1 - Rore_i
             rm[i][robot.type_id] = -1
             rm[i - 1][robot.type_id] = 1
+
+            # Append to the inequalities matrices list (using as_list())
             lhs_ineq.append(rm.as_list())
+
+            # Set: <= 0
             rhs_ineq.append(0)
 
     # Starting with just one ore robot
+    # Based on the example formula described above:
+    #   Rore_1 = 1, Rclay_1 = 0, Robs_1 = 0, Rgeo_1 = 0 and 0 for all others variables
     for robot in blueprint.robots:
         rm = RobotMatrix(max_minutes)
+        # Set: 1*Rore_1
         rm[0][robot.type_id] = 1
+
+        # Append to the equalities matrices list (using as_list())
         lhs_eq.append(rm.as_list())
+
+        # Set: = 1 or ore
         ore_id = ResourceSet.RESOURCES.index("ore")
         rhs_eq.append((1 if robot.type_id == ore_id else 0))
 
@@ -242,6 +303,9 @@ def process_blueprint(blueprint, max_minutes=24):
                  b=matrix(rhs_eq, tc='d'),
                  I=set(range(max_minutes * 4)))
 
+    # x a matrix of size max_minutes x 1. The geode part we're interested in (the Rgeo_x variables) are in the last
+    # part of the matrix. Since with have 4 type of resources, and geode is the last one, so they can be in the
+    # last quarter of the matrix.
     return int(sum(x[(3 * max_minutes):(4 * max_minutes)]))
 
 
@@ -250,6 +314,7 @@ def day19_1(file):
     quality_level = 0
 
     for blueprint in blueprints:
+        # Iterate over all the blueprints found and set the quality based on the maximum geode and the blueprint ID
         quality_level += process_blueprint(blueprint, max_minutes=24) * blueprint.id
 
     print(quality_level)
@@ -260,6 +325,7 @@ def day19_2(file):
     quality_level = 1
 
     for blueprint in blueprints[:3]:
+        # Iterate over the 3 first blueprints and multiply their maximum geode
         quality_level *= process_blueprint(blueprint, max_minutes=32)
 
     print(quality_level)
@@ -267,4 +333,4 @@ def day19_2(file):
 
 if __name__ == '__main__':
     day19_1(sys.argv[1])
-    #day19_2(sys.argv[1])
+    day19_2(sys.argv[1])
