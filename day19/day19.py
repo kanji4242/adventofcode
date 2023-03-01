@@ -43,7 +43,7 @@ To perform a ILP we need to provide :
     It will be represented by a matrix like { a_n, b_n, ... }
   - the equalities values (RHS) : All k_n values represented by a matrix like { k_0, k_1, ... , k_n }
 
-  - a matrix will the set of indices of our variables
+  - a matrix with the set of indices of our variables
 
 We will complete our setup with the following set of constrains:
 
@@ -249,7 +249,7 @@ def process_blueprint(blueprint, max_minutes=24):
                     rhs_ineq.append(0 if cost_id != ore_id else int(blueprint.robots[ore_id].cost.ore))
 
     # Current number of robots at most 1 more than in previous step
-    # Based on the example formula described above:
+    # Based on the formula described above:
     #   Rore_i + Rclay_i + Robs_i + Rgeo_i - Rore_i-1 - Rclay_i-1 - Robs_i-1 - Rgeo_i-1 <= 1
     for i in range(1, max_minutes):
         rm = RobotMatrix(max_minutes)
@@ -265,7 +265,7 @@ def process_blueprint(blueprint, max_minutes=24):
         rhs_ineq.append(1)
 
     # Not possible to lose robots
-    # Based on the example formula described above:
+    # Based on the formula described above:
     #   Rore_i−1 - Rore_i <= 0
     for robot in blueprint.robots:
         for i in range(1, max_minutes):
@@ -281,7 +281,6 @@ def process_blueprint(blueprint, max_minutes=24):
             rhs_ineq.append(0)
 
     # Starting with just one ore robot
-    # Based on the example formula described above:
     #   Rore_1 = 1, Rclay_1 = 0, Robs_1 = 0, Rgeo_1 = 0 and 0 for all others variables
     for robot in blueprint.robots:
         rm = RobotMatrix(max_minutes)
@@ -291,7 +290,7 @@ def process_blueprint(blueprint, max_minutes=24):
         # Append to the equalities matrices list (using as_list())
         lhs_eq.append(rm.as_list())
 
-        # Set: = 1 or ore
+        # Set: = 1 (or ore)
         ore_id = ResourceSet.RESOURCES.index("ore")
         rhs_eq.append((1 if robot.type_id == ore_id else 0))
 
@@ -304,7 +303,7 @@ def process_blueprint(blueprint, max_minutes=24):
                  I=set(range(max_minutes * 4)))
 
     # x a matrix of size max_minutes x 1. The geode part we're interested in (the Rgeo_x variables) are in the last
-    # part of the matrix. Since with have 4 type of resources, and geode is the last one, so they can be in the
+    # part of the matrix. Since with have 4 type of resources, and geode is the last one, so they will be in the
     # last quarter of the matrix.
     return int(sum(x[(3 * max_minutes):(4 * max_minutes)]))
 
@@ -314,7 +313,8 @@ def day19_1(file):
     quality_level = 0
 
     for blueprint in blueprints:
-        # Iterate over all the blueprints found and set the quality based on the maximum geode and the blueprint ID
+        # Iterate over all the blueprints found and set the quality level based on the maximum geode and the
+        # blueprint ID
         quality_level += process_blueprint(blueprint, max_minutes=24) * blueprint.id
 
     print(quality_level)
