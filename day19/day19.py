@@ -79,37 +79,34 @@ previous step. For example, for ore robots:
 
 import sys
 import re
-import numpy as np
 from cvxopt.glpk import ilp
 from cvxopt import matrix
 
 from typing import List
 
 
-RESOURCES = ["ore", "clay", "obsidian", "geode"]
-DEFAULT_MINUTES = 24
-FOR_HASHES = {}
-
-
-class ResourceSet(np.ndarray):
-    def __new__(cls):
-        return super(ResourceSet, cls).__new__(cls, (4,), dtype=int)
-
-    def __str__(self):
-        return f"{{{'/'.join([str(self[x]) for x in range(self.shape[0])])}}}"
+class ResourceSet(list):
+    RESOURCES = ["ore", "clay", "obsidian", "geode"]
 
     def __init__(self):
-        self.fill(0)
+        super().__init__([0, 0, 0, 0])
+
+    def __str__(self):
+        return f"{{{'/'.join([str(self[x]) for x in range(4)])}}}"
+
+    @property
+    def size(self):
+        return 4
 
     def __getattr__(self, item):
         try:
-            return self[RESOURCES.index(item)]
+            return self[self.RESOURCES.index(item)]
         except ValueError:
             raise AttributeError(f"No such attribute: {item}") from None
 
     def __setattr__(self, item, value):
         try:
-            self[RESOURCES.index(item)] = int(value)
+            self[self.RESOURCES.index(item)] = int(value)
         except ValueError:
             raise AttributeError(f"No such attribute: {item}") from None
 
@@ -126,7 +123,7 @@ class RobotMatrix(list):
         return output
 
     def as_list(self):
-        size = self[0].shape[0]
+        size = self[0].size
         return [int(self[x][y]) for y in range(size) for x in range(len(self))]
 
 
@@ -134,11 +131,11 @@ class Robot:
     def __init__(self, type_label_or_id: str, cost: ResourceSet):
         if type(type_label_or_id) is int is int:
             self.type_id = int(type_label_or_id)
-            self.type = RESOURCES[self.type_id]
+            self.type = ResourceSet.RESOURCES[self.type_id]
 
-        elif type(type_label_or_id) is str and type_label_or_id in RESOURCES:
+        elif type(type_label_or_id) is str and type_label_or_id in ResourceSet.RESOURCES:
             self.type = type_label_or_id
-            self.type_id = RESOURCES.index(type_label_or_id)
+            self.type_id = ResourceSet.RESOURCES.index(type_label_or_id)
 
         else:
             raise TypeError(f"Unknown robot type {type_label_or_id}")
@@ -156,10 +153,6 @@ class Blueprint:
 
     def __repr__(self):
         return f"Blueprint#{self.id}(robots:{self.robots})"
-
-    def robot_by_type_id(self, type_id):
-        robot = [r for r in self.robots if r.type_id == type_id]
-        return robot if robot else None
 
 
 def parse_blueprints(file):
@@ -212,7 +205,7 @@ def process_blueprint(blueprint, max_minutes=24):
                     for j in range(i - 1):
                         rm[j][cost_id] = -1
                     lhs_ineq.append(rm.as_list())
-                    ore_id = RESOURCES.index("ore")
+                    ore_id = ResourceSet.RESOURCES.index("ore")
                     rhs_ineq.append(0 if cost_id != ore_id else int(blueprint.robots[ore_id].cost.ore))
 
     # Current number of robots at most 1 more than in previous step
@@ -238,7 +231,7 @@ def process_blueprint(blueprint, max_minutes=24):
         rm = RobotMatrix(max_minutes)
         rm[0][robot.type_id] = 1
         lhs_eq.append(rm.as_list())
-        ore_id = RESOURCES.index("ore")
+        ore_id = ResourceSet.RESOURCES.index("ore")
         rhs_eq.append((1 if robot.type_id == ore_id else 0))
 
     # Find optimum
@@ -274,4 +267,4 @@ def day19_2(file):
 
 if __name__ == '__main__':
     day19_1(sys.argv[1])
-    day19_2(sys.argv[1])
+    #day19_2(sys.argv[1])
