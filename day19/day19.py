@@ -11,9 +11,9 @@ and equalities and use the integer linear programming (ILP) implementation from 
 maximum value. One of the advantages of this approach is that the computation is almost instantaneous.
 
 To solve this problem, we will use a set of variables that will represent the count of robots from type 'x' available
-at the beginning of minute 'i'. We will denote them as Rx_i will be. For instance, the count of robots from type
-'clay' at minute '12" will be noted Rclay_12. With this configuration, we have a total of 24∗4 = 96 variables
-for the part 1 and 32 ∗ 4 = 128 for the part 2 :
+at the beginning of minute 'i'. We will denote them as Rx_i. For instance, the count of robots from type
+'clay' at minute '12" will be noted Rclay_12. With this configuration, we have a total of 24 ∗ 4 = 96 variables
+for the part 1 and 32 ∗ 4 = 128 for the part 2:
 
 For instance, for the part 1 will have the following set of variables :
 { Rore_1, ... , Rore_24, Rclay_1, ... , Rclay_24, Robs_1, ... , Robs_24, Rgeo_1, ... , Rgeo_24 }   
@@ -71,9 +71,9 @@ previous step. For example, for ore robots:
   Rore_i−1 <= Rore_i
      ==> Rore_i−1 - Rore_i <= 0
 
-4/ We also define the starting conditions (we just have 1 ore robot) using this equalities:
+4/ We also define the starting conditions (we just have 1 ore robot) using these equalities:
 
-  Rore_1 = 1, Rclay_1 = 0, Robs_1 = 0, Rgeo_1 = 0 and 0 for all others variables
+  Rore_1 = 1, Rclay_1 = 0, Robs_1 = 0, Rgeo_1 = 0, and Rx_m = 0 for m > 1 and x the 4 resources
   
 """
 
@@ -88,7 +88,7 @@ from typing import List
 class ResourceSet(list):
     """
     ResourceSet is a set of the 4 resources indexed as follows : ore(0), clay(1), obsidian(2) and geode(3).
-    Quantities are initialized to 0. You can access or set quantity by its index number or its name.
+    Quantities are initialized to 0. You can access or set a quantity by its index number or its name.
     For instance, to set 3 for clay to a ResourceSet named "rs", you can do:
       rs.clay = 3 or rs[1] = 3
     """
@@ -121,15 +121,16 @@ class RobotMatrix(list):
     """
     RobotMatrix is a list of ResourceSet instances. The size of the list is linked to the number of minutes given
     by the puzzle (24 or 32).
-    This a convenient way to assign coefficient to our set of variables described above. The final list can be
+    This a convenient way to assign coefficients to our set of variables described above. A flat list can be
     obtained with the as_list() method which will be used to build the matrix for ILP
     For instance, to set 12 for obsidian at minute 10 to a RobotMatrix named "rm", you can do:
       rm[9][2] = 12 or rm[9].obsidian = 12
-    With this quantity being set, calling the method as_list() will yield the following list of size "4 * size" with:
-      [ "size" * 0s (ore),
-        "size" * 0s (clay),
-        9 * 0s (obsidian), 12 (our previous set), "size - 10" * 0s (obsidian),
-        "size" * 0s (geode) ]
+    With this quantity being set, calling the method as_list() will yield the following flat list of size
+    "4 * size" with:
+      [ "size" 0s (ore),
+        "size" 0s (clay),
+        9 0s (obsidian), 12 (our previous set), "size - 10" 0s (obsidian),
+        "size" 0s (geode) ]
     """
     def __init__(self, size):
         # Set a list with "size" ResourceSet instances
@@ -302,7 +303,7 @@ def process_blueprint(blueprint, max_minutes=24):
                  b=matrix(rhs_eq, tc='d'),
                  I=set(range(max_minutes * 4)))
 
-    # x a matrix of size max_minutes x 1. The geode part we're interested in (the Rgeo_x variables) are in the last
+    # x is a matrix of size max_minutes x 1. The geode part we're interested in (the Rgeo_x variables) are in the last
     # part of the matrix. Since with have 4 type of resources, and geode is the last one, so they will be in the
     # last quarter of the matrix.
     return int(sum(x[(3 * max_minutes):(4 * max_minutes)]))
