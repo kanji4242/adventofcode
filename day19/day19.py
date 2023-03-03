@@ -15,33 +15,35 @@ at the beginning of minute 'i'. We will denote them as Rx_i. For instance, the c
 'clay' at minute '12" will be noted Rclay_12. With this configuration, we have a total of 24 ∗ 4 = 96 variables
 for the part 1 and 32 ∗ 4 = 128 for the part 2:
 
-For instance, for the part 1 will have the following set of variables :
+For instance, for the part 1 will have the following set of variables:
 { Rore_1, ... , Rore_24, Rclay_1, ... , Rclay_24, Robs_1, ... , Robs_24, Rgeo_1, ... , Rgeo_24 }   
 
-If we denote as T the total count of minutes (24 and 32 for each
-part respectively), the formula that we want to maximize is the geodes produced eight minute weighted by the
-current minutes left :
+If we denote as T the total count of minutes (24 and 32 for each part respectively), since we want to know the maximum
+number of geodes that can be produced, it is equivalent to maximize the following formula where each geode robots
+variables are weighted by the current minutes left (T-n):
 
   geode_level = Rgeo_1 * T + Rgeo_2 * (T−1) + ... + Rgeo_T * 1
   
-The variables to count robots from other types have weight 0 in this formula, because we're only interested in
+The other variables to count robots from other types have weight 0 in this formula, because we're only interested in
 geodes.
 
-To perform a ILP we need to provide :
-  - a minimizing matrix : related a linear expression involving our variables weighted coefficients which are
+To perform an ILP we need to provide:
+  - a minimizing matrix: related a linear expression involving our variables weighted coefficients which are
     represented by a matrix (a 24x1 matrix for part 1 and 32 x 1 for part 2). The algorithm will try to minimize.
-    This expression will be our geode_level, but we want to maximize it. To do that, the trick is use negative numbers.
-    So we will use the following matrix : { -T, -T+1, ... , -1 }
+    This expression will be used to calculate our geode_level, but we want to maximize it. To do that, the trick is
+    use negative numbers. So we will use the following matrix: { -T, -T+1, ... , -1 }
 
-  - a set of inequalities expression (LHS) : a set linear expression discussed below related to the expression
-    a_n*x + b_n*y + ... <= k_n with all variables moved on the left-hand side (LHS) and the value and right-hand side.
-    It will be represented by a matrix like { a_n, b_n, ... }
-  - the inequalities values (RHS) : All k_n values represented by a matrix like { k_0, k_1, ... , k_n }
+  - a set of inequalities expression (LHS): a set linear expression discussed below related to the expression
+    a_n*x + b_n*y + ... <= k_n with all variables are moved on the left-hand side (LHS) and the final value on the
+    right-hand side (RHS). It will be represented by a matrix like { a_n, b_n, ... }
+  - all the value (on the RHS) for the inequalities: All k_n values are represented by a matrix like
+    { k_0, k_1, ... , k_n }
 
-  - a set of equalities expression (LHS) : a set linear expression discussed below related to the expression
-    a_n*x + b_n*y + ... = k_n with all variables moved on the left-hand side (LHS) and the value and right-hand side.
-    It will be represented by a matrix like { a_n, b_n, ... }
-  - the equalities values (RHS) : All k_n values represented by a matrix like { k_0, k_1, ... , k_n }
+  - a set of equalities expression (LHS): a set linear expression discussed below related to the expression
+    a_n*x + b_n*y + ... = k_n with all variables are moved on the left-hand side (LHS) and the final value on the
+    right-hand side (RHS). It will be represented by a matrix like { a_n, b_n, ... }
+  - all the value (on the RHS) for the equalities: All k_n values represented by a matrix like
+    { k_0, k_1, ... , k_n }
 
   - a matrix with the set of indices of our variables
 
@@ -53,10 +55,12 @@ types of robots, divided by the cost. We have to take into account that we start
 need to subtract its cost. For example, for geode robots costs 2 ores and 7 obsidians, so we have the following two
 inequalities for the first example blueprint. The first one is for ore and the second one is for obsidian:
 
-  Rgeo_i <= 1/2 (sum from j=1 to i-2 of all Rore_j) - (4(Rore_i-1 - 1) + 2*Rclay_i-1 + 3*Robs_i-1)
+  Rgeo_i <= 1/2 [ (the sum from j=1 to i-2 of all Rore_j) - (4(Rore_i-1 - 1) + 2*Rclay_i-1 + 3*Robs_i-1) ]
+     ==> 2*Rgeo_i <= Rore_1 - Rore_2 - ... - Rore_i-2 - 4*Rore_i-1 + 4 - 2*Rclay_i-1 - 3*Robs_i-1
      ==> 2*Rgeo_i - Rore_1 - Rore_2 - ... - Rore_i-2 + 4*Rore_i-1 + 2*Rclay_i-1 + 3*Robs_i-1 <= 4
      
-  Rgeo_i <= 1/7 (sum from j=1 to i-2 of all Robs_j)
+  Rgeo_i <= 1/7 (the sum from j=1 to i-2 of all Robs_j)
+     ==> 7*Rgeo_i <= Robs_1 - Robs_2 - ... - Robs_i-2
      ==> 7*Rgeo_i - Robs_1 - Robs_2 - ... - Robs_i-2 <= 0
 
 2/ We can build just one robot at each step. That is, the total count of robots is, at most, one more than the
@@ -73,7 +77,7 @@ previous step. For example, for ore robots:
 
 4/ We also define the starting conditions (we just have 1 ore robot) using these equalities:
 
-  Rore_1 = 1, Rclay_1 = 0, Robs_1 = 0, Rgeo_1 = 0, and Rx_m = 0 for m > 1 and x the 4 resources
+  Rore_1 = 1, Rclay_1 = 0, Robs_1 = 0, Rgeo_1 = 0, and Rx_m = 0 for m > 1 and x is any the 4 resources
   
 """
 
@@ -87,7 +91,7 @@ from typing import List
 
 class ResourceSet(list):
     """
-    ResourceSet is a set of the 4 resources indexed as follows : ore(0), clay(1), obsidian(2) and geode(3).
+    ResourceSet is a set of the 4 resources indexed as follows: ore(0), clay(1), obsidian(2) and geode(3).
     Quantities are initialized to 0. You can access or set a quantity by its index number or its name.
     For instance, to set 3 for clay to a ResourceSet named "rs", you can do:
       rs.clay = 3 or rs[1] = 3
@@ -170,7 +174,7 @@ class Robot:
 
 class Blueprint:
     """
-    Blueprint contains informations about a blueprint and contains:
+    Blueprint contains information about a blueprint and contains:
      - its ID
      - all the 4 robots characteristics
     """
@@ -213,7 +217,7 @@ def process_blueprint(blueprint, max_minutes=24):
     rhs_eq = []
 
     # Minimize this expression
-    # We do not care about ore, clay, obsidian robots, only geode robots set with coefficients
+    # We do not care about ore, clay, obsidian robots, only geode robots are set with coefficients
     # Since we want to maximize the geode robots, we use negative coefficients
     # This is will generate the matrix for geode with { -T, -T+1, ... , -1 } as described abode.
     # All other resources matrices will be set to 0
@@ -221,7 +225,8 @@ def process_blueprint(blueprint, max_minutes=24):
     for i in range(max_minutes):
         minimize[i].geode = -(max_minutes - i)
 
-    # Current number of robots never higher than the total materials needed minus used
+    # The total amount of materials collected until that point minus the materials used to build other
+    # types of robots, divided by the cost
     # Based on the example formula described above:
     #   2*Rgeo_i - Rore_1 - Rore_2 - ... - Rore_i-2 + 4*Rore_i-1 + 2*Rclay_i-1 + 3*Robs_i-1 <= 4
     for robot in blueprint.robots:
@@ -255,7 +260,7 @@ def process_blueprint(blueprint, max_minutes=24):
     for i in range(1, max_minutes):
         rm = RobotMatrix(max_minutes)
         for robot in blueprint.robots:
-            # Set: Rore_i - Rore_i-1
+            # Set: Rore_i - Rore_i-1, and Rclay_i - Rclay_i-1, ...
             rm[i][robot.type_id] = 1
             rm[i - 1][robot.type_id] = -1
 
