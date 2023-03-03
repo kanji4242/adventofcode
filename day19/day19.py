@@ -56,11 +56,11 @@ need to subtract its cost. For example, for geode robots costs 2 ores and 7 obsi
 inequalities for the first example blueprint. The first one is for ore and the second one is for obsidian:
 
   Rgeo_i <= 1/2 [ (the sum from j=1 to i-2 of all Rore_j) - (4(Rore_i-1 - 1) + 2*Rclay_i-1 + 3*Robs_i-1) ]
-     ==> 2*Rgeo_i <= Rore_1 - Rore_2 - ... - Rore_i-2 - 4*Rore_i-1 + 4 - 2*Rclay_i-1 - 3*Robs_i-1
+     ==> 2*Rgeo_i <= Rore_1 + Rore_2 - ... + Rore_i-2 - 4*Rore_i-1 + 4 - 2*Rclay_i-1 - 3*Robs_i-1
      ==> 2*Rgeo_i - Rore_1 - Rore_2 - ... - Rore_i-2 + 4*Rore_i-1 + 2*Rclay_i-1 + 3*Robs_i-1 <= 4
      
   Rgeo_i <= 1/7 (the sum from j=1 to i-2 of all Robs_j)
-     ==> 7*Rgeo_i <= Robs_1 - Robs_2 - ... - Robs_i-2
+     ==> 7*Rgeo_i <= Robs_1 + Robs_2 - ... + Robs_i-2
      ==> 7*Rgeo_i - Robs_1 - Robs_2 - ... - Robs_i-2 <= 0
 
 2/ We can build just one robot at each step. That is, the total count of robots is, at most, one more than the
