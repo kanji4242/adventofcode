@@ -94,23 +94,23 @@ def find_humn_by_bisection(monkeys):
         diff = -diff
 
     # We start adjusting the "humn" monkey by iteration until we get a negative result
-    # We don't know how much to adjust, the number it can be very large, to optimize we proceed in logarithmic way
-    # with multiply by 10.
+    # We don't know how much to adjust, the number can be very large, to optimize we proceed in logarithmic way
+    # by multiply by 10 each step.
     adjustment = 1
     while diff > 0:
         adjustment *= 10
         diff = process_monkeys(monkeys, humn_value=adjustment)
 
-    # The real bisection method beings here:
-    # our interval a is the last adjustment (we get it by dividing by 10)
-    # our interval b is simply the last adjustment we got previously
+    # The real bisection method begins here:
+    # our interval A is the last adjustment we had when the result was still positive (we get it by dividing by 10)
+    # our interval B is simply the last adjustment we got previously
     interval_a = adjustment // 10
     interval_b = adjustment
     while True:
-        # Compute the midpoint of the 2 interval
+        # Compute the midpoint of the 2 intervals
         result = (interval_a + interval_b) // 2
         diff = process_monkeys(monkeys, humn_value=result)
-        # Adjust the interval a or interval b depending on the result
+        # Adjust the interval A or interval B depending on the result
         if diff > 0:
             interval_a = result
         elif diff < 0:
