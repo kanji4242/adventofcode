@@ -75,7 +75,7 @@ def process_monkeys(monkeys_ref, humn_value=None):
                 if operation[1] == '*':
                     result = monkeys[operation[0]] * monkeys[operation[2]]
                 if operation[1] == '/':
-                    result = int(monkeys[operation[0]] / monkeys[operation[2]])
+                    result = monkeys[operation[0]] // monkeys[operation[2]]
                 monkeys[name] = result
 
     return monkeys["root"]
@@ -104,11 +104,11 @@ def find_humn_by_bisection(monkeys):
     # The real bisection method beings here:
     # our interval a is the last adjustment (we get it by dividing by 10)
     # our interval b is simply the last adjustment we got previously
-    interval_a = int(adjustment / 10)
+    interval_a = adjustment // 10
     interval_b = adjustment
     while True:
         # Compute the midpoint of the 2 interval
-        result = int((interval_a + interval_b) / 2)
+        result = (interval_a + interval_b) // 2
         diff = process_monkeys(monkeys, humn_value=result)
         # Adjust the interval a or interval b depending on the result
         if diff > 0:
