@@ -11,7 +11,7 @@ Instead of writing another code from scratch, I preferred a have a generic solut
 
  - the first steps are quite classic: parse the tiles from input and insert them into a numpy array, then parse the
   directions and them split them into a list of tuple. Each tuple containing the number of steps and the letter
-  indicating how to turn.
+  indicating where to turn.
 
  - build a list of "jumps". A jump is when the next tile is not the next one in the path regarding the direction
    we're facing. For instance in part 1, when we reach a tile on the border and our next tile in the path would be
@@ -69,17 +69,17 @@ vector direction):
       p4 +<-------+ p3
            edge 3
 
-The "O" sign is the origin (0, 0, 0) and the 4 points p1 to p4 have respective coordinates: (-1, 1, 1), (1, 1, 1),
+The "O" sign is the origin (0, 0, 0) and the 4 points p1 to p4 have the respective coordinates: (-1, 1, 1), (1, 1, 1),
 (1, -1, 1), (-1, -1, 1).
-Still looking from the top and moving at lower level, we find the 4 vertical edges whose vectors are directed
+Still looking from the top and moving at a lower level, we find the 4 vertical edges whose vectors are directed
 downward (by convention), they would like this:
 
    edge 5          edge 6
-         +        +
+         *        *
 
              O
 
-         +        +
+         *        *
    edge 8          edge 7
 
 And finally at the bottom level, the 4 remaining horizontal edges :
@@ -92,7 +92,7 @@ And finally at the bottom level, the 4 remaining horizontal edges :
       p8 +<-------+ p7
            edge 11
 
-The 4 points p5 to p9 have respective coordinates: (-1, 1, -1), (1, 1, -1), (1, -1, -1), (-1, -1, -1)
+The 4 points p5 to p8 have the respective coordinates: (-1, 1, -1), (1, 1, -1), (1, -1, -1), (-1, -1, -1)
 
 For instance, if we rotate the cube to the right (counterclockwise rotation on the y axis), we would get the following
 configuration while still looking from the top (note the vector direction changes) :
