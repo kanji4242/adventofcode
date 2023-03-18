@@ -6,7 +6,6 @@
 
 import sys
 import numpy as np
-from pprint import pprint
 
 
 class Grove:
@@ -75,9 +74,6 @@ class Grove:
             else:
                 proposed_moves[proposed_move].append(elf)
 
-        #pprint(self.elves)
-        #pprint(proposed_moves)
-
         self.new_grid.fill(self.TILE_GROUND)
 
         for coord, elves in proposed_moves.items():
@@ -93,7 +89,6 @@ class Grove:
 
         self.grid, self.new_grid = self.new_grid, self.grid
 
-        #print("moves:", nb_moves)
         return nb_moves
 
     def shape(self):
@@ -174,7 +169,6 @@ class Elf:
         return sum(neighours) != 8 * Grove.TILE_GROUND
 
     def propose_move(self):
-        #print(self.coord, "propose_move")
         self.direction_index += 1
         self.proposed_coord[:] = self.coord
 
@@ -186,7 +180,6 @@ class Elf:
                 if self.get_neighour(-1, -1) == Grove.TILE_GROUND \
                         and self.get_neighour(0, -1) == Grove.TILE_GROUND \
                         and self.get_neighour(1, -1) == Grove.TILE_GROUND:
-                    #print(self.coord, "propose north")
                     self.proposed_coord.move(0, -1)
                     break
 
@@ -194,7 +187,6 @@ class Elf:
                 if self.get_neighour(-1, 1) == Grove.TILE_GROUND \
                         and self.get_neighour(0, 1) == Grove.TILE_GROUND \
                         and self.get_neighour(1, 1) == Grove.TILE_GROUND:
-                    #print(self.coord, "propose south")
                     self.proposed_coord.move(0, 1)
                     break
 
@@ -202,7 +194,6 @@ class Elf:
                 if self.get_neighour(-1, -1) == Grove.TILE_GROUND \
                         and self.get_neighour(-1, 0) == Grove.TILE_GROUND \
                         and self.get_neighour(-1, 1) == Grove.TILE_GROUND:
-                    #print(self.coord, "propose west")
                     self.proposed_coord.move(-1, 0)
                     break
 
@@ -210,7 +201,6 @@ class Elf:
                 if self.get_neighour(1, -1) == Grove.TILE_GROUND \
                         and self.get_neighour(1, 0) == Grove.TILE_GROUND \
                         and self.get_neighour(1, 1) == Grove.TILE_GROUND:
-                    #print(self.coord, "propose east")
                     self.proposed_coord.move(1, 0)
                     break
 
@@ -225,7 +215,6 @@ def day23_1(file):
 def day23_2(file):
     grove = Grove(file)
     grove.parse_grove()
-    #grove.display_grove()
     print(grove.run())
 
 
