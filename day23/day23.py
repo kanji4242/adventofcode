@@ -16,11 +16,11 @@ I had 2 solution ideas:
 - to avoid the problem mentioned above, my 2nd idea is to do without this grid, and to use only the list of elves.
   The advantage of this method is that there is no limit to the coordinates and the elves can expand as much as they
   need. But another problem arises because the rules require a lot of neighbourhood checking, which forces looking up
-  the elf list a lot of times to check whether there is an elf or not at the neighbouring coordinates. And these list
-  lookups are a big performance issue.
+  the elves list a lot of times to check whether there is an elf or not at the neighbouring coordinates. And these
+  list lookups are a big performance issue.
 
 I implemented the 2 solutions, and the second solution is 10x slower than the first one. I opted for the 1st
-solution: using a grid with some arbitrary room. To optimize even further I use the 2 grids. One of the 2 will be
+solution: using a grid with some arbitrary room. To optimize even further I use 2 grids. One of the 2 will be
 active, while the other one is inactive and available for the next turn. When the next round comes, this grid become
 active while the grid used for the previous turn become inactive. This "round-robin" mechanism allows saving memory
 and avoid creating a new grid at each turn.
