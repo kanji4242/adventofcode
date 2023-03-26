@@ -104,6 +104,17 @@ Here is the final state (at minute 18):
  -1 17 18 14 -1 18 17 -1
  -1 -1 -1 -1 -1 -1 18 -1
 
+To go backward for port 2, this is very straightforward. We just need to invert the starting and end position and
+reinitialize the matrix as described above. Since we're on the run, we will then have a value greater than 0 on the
+starting point:
+
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 18 -1
+
 
 """
 
