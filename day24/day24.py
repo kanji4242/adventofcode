@@ -194,7 +194,7 @@ class Valley:
         # work on a new copy
         self.new_distances = None
 
-        # Start and end coordinate on the grid of the valley
+        # Start and end position on the grid of the valley
         self.start_coord = None
         self.end_coord = None
 
@@ -228,12 +228,12 @@ class Valley:
                         self.bz_grid[index][x - 1, y - 1] = self.BZ_TILE_WIND
                 if y == 0:
                     # Find where we have a ground cell (TILE_GROUND) on the first line, this is where the start
-                    # coordinate is
+                    # position is
                     self.start_coord = (int(np.where(self.grid[:, 0] == self.TILE_GROUND)[0]), 0)
                 y += 1
 
-            # In the same way as start coordinate, find where we have a ground cell (TILE_GROUND) on the last
-            # line, this is where the end coordinate is
+            # In the same way as start position, find where we have a ground cell (TILE_GROUND) on the last
+            # line, this is where the end position is
             self.end_coord = (int(np.where(self.grid[:, y - 1] == self.TILE_GROUND)[0]), y - 1)
 
         # Build the distance and initialize it
@@ -283,7 +283,7 @@ class Valley:
     def init_distances(self):
         # Initialize the distances by filling all values to -1
         self.distances.fill(-1)
-        # The start coordinate with set to the current minute
+        # The start position with set to the current minute
         self.distances[self.start_coord] = self.minute
         self.new_distances = self.distances.copy()
 
