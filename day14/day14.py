@@ -20,15 +20,14 @@ def symbol(cell):
     return cell_map[cell]
 
 
-def display_grid(grid, offsetx=0, offsety=0):
-    for y in range(offsety, grid.shape[1]):
-        print(''.join([symbol(grid[x][y]) for x in range(offsetx, grid.shape[0])]))
+def display_grid(grid, offset_x=0, offset_y=0):
+    for y in range(offset_y, grid.shape[1]):
+        print(''.join([symbol(grid[x][y]) for x in range(offset_x, grid.shape[0])]))
 
 
 def xrange(start, end):
-    if start == end:
-        return range(start, end)
-    elif start > end:
+    # Extending the range method to also handle the reverse direction
+    if start > end:
         return range(start, end - 1, -1)
     else:
         return range(start, end + 1)
