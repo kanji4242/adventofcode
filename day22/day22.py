@@ -382,7 +382,7 @@ class Face:
 
 class Tiles:
     """
-    Face represent a tiles map
+    Tiles represent a tiles map
     """
     TILE_EMPTY = 0x0
     TILE_OPEN = 0X1
