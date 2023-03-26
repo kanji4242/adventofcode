@@ -33,7 +33,7 @@ import numpy as np
 
 class Grove:
     """
-    Grove represent a grove with:
+    Grove represents a grove with:
       - the 2 grids (numpy array) where elves will be placed, the first one is active while the second one is inactive,
         as described above.
       - a list of elves
