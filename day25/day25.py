@@ -39,11 +39,10 @@ def int2snafu(nb):
     for x in range(len(nb_digits) - 1, 0, -1):
         if nb_digits[x] > 2:
             nb_digits[x] -= 5
-            nb_digits[x - 1] += 1
-
-    if nb_digits[0] > 2:
-        nb_digits[0] -= 5
-        nb_digits.insert(0, 1)
+            if x > 0:
+                nb_digits[x - 1] += 1
+            else:
+                nb_digits.insert(0, 1)
 
     return ''.join([digits[d] for d in nb_digits])
 
