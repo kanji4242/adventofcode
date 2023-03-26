@@ -4,6 +4,109 @@
 # https://adventofcode.com/2022/day/24
 #
 
+"""
+The idea is to build several grids:
+ - a valley grid, which contains all the data in the input file
+ - 4 grids that contain the position of the blizzards in the 4 directions
+ - a distance matrix of the same size as the valley grid and containing the distances that can be traveled as the
+   minutes pass. Each value in the matrix contains the number of minutes required to reach a particular location.
+
+
+The valley grid will include wall, and grounds and blizzards. Since they can be several blizzards at a given position,
+we use a bit-wise value which allows the detection hwo many blizzards we have in that position. We use the following
+values: 1 for up, 2 for down, 4 for left and 8 for right motions, 64 for walls, a clear ground will then have a value
+of 0.
+
+On the given exemple at its initial state will look like:
+
+ 64  0 64 64 64 64 64 64
+ 64  8  8  0  4  1  4 64
+ 64  0  4  0  0  4  4 64
+ 64  8  2  0  8  4  8 64
+ 64  4  1  2  1  1  8 64
+ 64 64 64 64 64 64  0 64
+
+At this stage, we don't have any position with more than 1 blizzards (all value are a power of 2), but at minute 1,
+we will:
+
+ 64  0 64 64 64 64 64 64
+ 64  0  8 14  0  4  0 64
+ 64  4  0  0  4  4  0 64
+ 64  8  9  0  5  9  0 64
+ 64  8  2  0  0  1  4 64
+ 64 64 64 64 64 64  0 64
+
+The 4 blizzards grids will contain only the position of the blizzards. Since walls are surrounding the valley, their size
+will be the same as the valley grid minus 2.
+
+On the given example, the 4 grids will look like this:
+
+ Up motion      Down motion   Left motion   Right motion
+
+ ....^.         ......        ...<.<        >>....
+ ......         ......        .<..<<        ......
+ ......         .v....        ....<.        >..>.>
+ .^.^^.         ..v...        <.....        .....>
+
+The valley grid is built each minute from the 4 blizzard grids according to the blizzard progression.
+
+To simulate the blizzard progression, it is not necessary to modify the grid. You just have to read each grid from an
+index incremented every minute modulo the size of the grid.
+
+The distance matrix is filled with -1, except for the starting point which is initially with the current minute (0 at
+the beginning, but may different in part 2). The distance matrix is updated each minute.
+
+On the given example, the distance matrix will look like this:
+
+ -1  0 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+
+Since we're starting at (1, 0), the value at this position is set to 0.
+
+Each minute, we identify where we have clean ground on the valley grid. For each position found, we then look at the
+distance at 5 positions: at the position found, at the position below, at the position above, at the position on the
+left, and at the position on the right.
+
+If we found a cell with contains the previous minute value (minute - 1), we then update that cell with the current
+minute value. With this iterating process each minute, we have the minimum number of minutes required to reach a
+particular position.
+
+On the same example, at minute 1, we are able to go down, so we will have 2 ones:
+
+ -1  1 -1 -1 -1 -1 -1 -1
+ -1  1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+
+On minute 2, we're also able to go down, so we will have 3 twos:
+
+ -1  2 -1 -1 -1 -1 -1 -1
+ -1  2 -1 -1 -1 -1 -1 -1
+ -1  2 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+ -1 -1 -1 -1 -1 -1 -1 -1
+
+We stop until we reach the ending position and have a minimum number of minutes for it.
+
+Here is the final state (at minute 18):
+
+ -1 18 -1 -1 -1 -1 -1 -1
+ -1 16 17 18 17 18 15 -1
+ -1 18 17 16 17 17 16 -1
+ -1 17 18 13 14 15 16 -1
+ -1 17 18 14 -1 18 17 -1
+ -1 -1 -1 -1 -1 -1 18 -1
+
+
+"""
+
 import sys
 import numpy as np
 
@@ -11,7 +114,7 @@ import numpy as np
 class Vector(tuple):
     """
     Vector subclass tuple with 2 values x and y
-    It add .x and .y property for more code clarity
+    It adds .x and .y property for more code clarity
     """
     def __new__ (cls, x=0, y=0):
         return super(Vector, cls).__new__(cls, tuple((x, y)))
@@ -69,16 +172,15 @@ class Valley:
 
         # Grid of the valley
         self.grid = None
-        # Previous grid of the valley, contain the valley configuration 1 minute before
-        # Every a new minute is increment self.grid is copied to self.prev_grid
-        self.prev_grid = None
 
-        # Grids for breeze (will contain 4 grids for the 4 directions)
+        # Grids for blizzard (will contain 4 grids for the 4 directions)
         self.bz_grid = []
 
         # Distances matrix to compute the optimum path
         self.distances = None
-        # The new distances matrix that will set for the current minute
+        # The new distances matrix that will be built for the current minute
+        # We do this because the detection algorithm will be affected while updating the matrix, so we need to
+        # work on a new copy
         self.new_distances = None
 
         # Start and end coordinate on the grid of the valley
@@ -98,9 +200,9 @@ class Valley:
         self.grid = np.ndarray((size_x, size_y), dtype=int)
 
         for i in range(4):
-            bzgrid = np.ndarray((size_x - 2, size_y - 2), dtype=int)
-            bzgrid.fill(self.BZ_TILE_EMPTY)
-            self.bz_grid.append(bzgrid)
+            bz_grid = np.ndarray((size_x - 2, size_y - 2), dtype=int)
+            bz_grid.fill(self.BZ_TILE_EMPTY)
+            self.bz_grid.append(bz_grid)
 
         tiles_reverse = {v: k for k, v in self.TILES.items()}
 
@@ -130,18 +232,19 @@ class Valley:
         self.build_valley()
 
     def build_valley(self):
-        # Build the grid valley grid from the 4 breeze grids
-        self.prev_grid = self.grid.copy()
-
+        # Build the grid valley grid from the 4 blizzard grids
         for y in range(self.grid.shape[1] - 2):
             for x in range(self.grid.shape[0] - 2):
                 value = 0
                 for i in range(len(self.BZ_GRID_TILES_ID)):
+                    # We simulate the blizzard progression by reading the blizzard with incremented index
+                    # Depending on blizzard motion, the index on x-axis will be incremented for left and right blizzard
+                    # while the index on y-axis will be incremented for up and down
                     bz_grid_x = (x - self.BZ_GRID_VECTORS[i].x * self.minute) % (self.bz_grid[i].shape[0])
                     bz_grid_y = (y - self.BZ_GRID_VECTORS[i].y * self.minute) % (self.bz_grid[i].shape[1])
                     if self.bz_grid[i][bz_grid_x, bz_grid_y]:
-                        # The value is a binary value, each bit represents a breeze direction and is set to 1
-                        # if the breeze is present
+                        # The value is a binary value, each bit represents a blizzard direction and is set to 1
+                        # if the blizzard is present
                         value |= 1 << i
                 self.grid[x + 1, y + 1] = value
 
@@ -149,30 +252,31 @@ class Valley:
         for y in range(self.grid.shape[1]):
             for x in range(self.grid.shape[0]):
                 if self.grid[x, y] == self.TILE_GROUND:
+                    # We found a clear ground with no blizzard
                     for direction in [Vector(0, 0), Vector(1, 0), Vector(-1, 0), Vector(0, 1), Vector(0, -1)]:
+                        # We look at the position found, at the position below, at the position above,
+                        # at the position on the and at the position on the right.
+                        # We also check the boundary of the matrix
                         if 0 <= x + direction.x < self.grid.shape[0] and 0 <= y + direction.y < self.grid.shape[1]:
+                            # If we found a cell with contains the previous minute value (minute - 1), we then
+                            # update that cell with the current minute value.
                             if self.distances[x + direction.x, y + direction.y] == self.minute - 1:
                                 self.new_distances[x, y] = self.minute
-        self.distances = self.new_distances.copy()
 
-    def tiles(self, value):
-        if int(value) in self.TILES.keys():
-            return self.TILES[value]
-        else:
-            return "2"
+        self.distances = self.new_distances.copy()
 
     def inverse_direction(self):
         self.start_coord, self.end_coord = self.end_coord, self.start_coord
         self.init_distances()
 
     def init_distances(self):
-        # Initialize the distances by filling all value to -1
+        # Initialize the distances by filling all values to -1
         self.distances.fill(-1)
         # The start coordinate with set to the current minute
         self.distances[self.start_coord] = self.minute
         self.new_distances = self.distances.copy()
 
-    def do_round(self):
+    def travel(self):
         while True:
             self.minute += 1
             #print("minute", self.minute)
@@ -182,10 +286,21 @@ class Valley:
             if self.distances[self.end_coord] != -1:
                 break
 
+    def tiles(self, value):
+        # Find which character to display for a ground cell (for debugging purpose only=)
+        if int(value) in self.TILES.keys():
+            return self.TILES[value]
+        else:
+            # If we have more than 1 blizzard on the cell we display "2" by default
+            return "2"
+
     def display_valley(self, display_bz_graph=False):
-        # Display the valley for debugging purpose only
+        # Display the valley (for debugging purpose only=)
         for y in range(self.grid.shape[1]):
             print(''.join([self.tiles(self.grid[x, y]) for x in range(self.grid.shape[0])]))
+
+        for y in range(self.grid.shape[1]):
+            print(''.join([f"{self.grid[x, y]:3}" for x in range(self.grid.shape[0])]))
 
         print(" ")
         if display_bz_graph:
@@ -195,26 +310,27 @@ class Valley:
                 print(" ")
 
     def display_distances(self):
-        # Display the distance matrix for debugging purpose only
+        # Display the distance matrix (for debugging purpose only=)
         for y in range(self.distances.shape[1]):
             print(''.join([f"{self.distances[x, y]:3}" for x in range(self.distances.shape[0])]))
+        print(" ")
 
 
 def day24_1(file):
     v = Valley(file)
     v.parse_input()
-    v.do_round()
+    v.travel()
     print(v.minute)
 
 
 def day24_2(file):
     v = Valley(file)
     v.parse_input()
-    v.do_round()
+    v.travel()
     v.inverse_direction()
-    v.do_round()
+    v.travel()
     v.inverse_direction()
-    v.do_round()
+    v.travel()
     print(v.minute)
 
 
