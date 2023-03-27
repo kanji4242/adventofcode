@@ -17,7 +17,7 @@ class Item:
 
 
 class Monkey:
-    def __init__(self, monkey_id, items, operation, worry_test, throw_worry_if_true, throw_worry_if_false):
+    def __init__(self, monkey_id, items, operation, worry_test, throw_worry_if_true, throw_worry_if_false, is_bored):
         self.monkey_id = monkey_id
         self.items = items
         self.operation = operation
@@ -26,9 +26,9 @@ class Monkey:
         self.throw_worry_if_false = throw_worry_if_false
         self.monkey_throw_worry_if_true = None
         self.monkey_throw_worry_if_false = None
+        self.is_bored = is_bored
+        self.fix_worry = None
         self.inspected = 0
-
-        self.correction = eval(self.operation.format(item=0)) % self.worry_test
 
     def __repr__(self):
         return f"Monkey({repr(self.items)}, {self.operation}, {self.worry_test}, " \
@@ -36,9 +36,14 @@ class Monkey:
 
     def inspect(self):
         for item in self.items:
-            print("inspect", item.worry_level)
             self.inspected += 1
-            item.worry_level = int(eval(self.operation.format(item=item.worry_level)) / 3)
+
+            if self.fix_worry:
+                item.worry_level = item.worry_level % self.fix_worry
+
+            item.worry_level = int(eval(self.operation.format(item=item.worry_level)))
+            if self.is_bored:
+                item.worry_level = int(item.worry_level / 3)
 
             if item.worry_level % self.worry_test == 0:
                 self.monkey_throw_worry_if_true.items.append(item)
@@ -46,34 +51,8 @@ class Monkey:
                 self.monkey_throw_worry_if_false.items.append(item)
         self.items.clear()
 
-    def inspect2(self):
-        print("-monkey", self.monkey_id, self.correction)
-        for item in self.items:
-            print("inspect", item.worry_level)
-            #item.worry_level = (self.worry_test - self.correction) % self.worry_test
-            #print("inspect new", item.worry_level)
-            self.inspected += 1
-            item.worry_level = eval(self.operation.format(item=item.worry_level))
-            #print("inspect new", item.worry_level, "modulo =", item.worry_level % self.worry_test)
 
-            if item.worry_level % self.worry_test == 0:
-                test1 = eval(self.monkey_throw_worry_if_true.operation.format(item=item.worry_level)) % self.monkey_throw_worry_if_true.worry_test
-                item.worry_level = item.worry_level % self.monkey_throw_worry_if_true.worry_test
-                test2 = eval(self.monkey_throw_worry_if_true.operation.format(item=item.worry_level)) % self.monkey_throw_worry_if_true.worry_test
-                print("diff", test1, test2)
-                print("throw to", self.monkey_throw_worry_if_true.monkey_id, item.worry_level)
-                self.monkey_throw_worry_if_true.items.append(item)
-            else:
-                test1 = eval(self.monkey_throw_worry_if_false.operation.format(item=item.worry_level)) % self.monkey_throw_worry_if_false.worry_test
-                item.worry_level = item.worry_level % self.monkey_throw_worry_if_false.worry_test
-                test2 = eval(self.monkey_throw_worry_if_false.operation.format(item=item.worry_level)) % self.monkey_throw_worry_if_false.worry_test
-                print("diff", test1, test2)
-                print("throw to", self.monkey_throw_worry_if_false.monkey_id, item.worry_level)
-                self.monkey_throw_worry_if_false.items.append(item)
-        self.items.clear()
-
-
-def parse_monkeys(file):
+def parse_monkeys(file, with_boring=True):
     monkeys = []
     with open(file) as f:
         while line := f.readline():
@@ -96,7 +75,7 @@ def parse_monkeys(file):
                     elif line.startswith("If false: throw to monkey "):
                         throw_worry_if_false = int(line[26:])
                         monkeys.append(Monkey(monkey_id, starting_items, operation, worry_test,
-                                              throw_worry_if_true, throw_worry_if_false))
+                                              throw_worry_if_true, throw_worry_if_false, with_boring))
                     else:
                         break
 
@@ -110,7 +89,7 @@ def parse_monkeys(file):
 
 
 def day11_1(file):
-    monkeys = parse_monkeys(file)
+    monkeys = parse_monkeys(file, with_boring=True)
 
     for _ in range(20):
         for monkey in monkeys:
@@ -120,21 +99,20 @@ def day11_1(file):
 
 
 def day11_2(file):
-    monkeys = parse_monkeys(file)
+    monkeys = parse_monkeys(file, with_boring=False)
 
-    for _ in range(20):
-        print(f"--round{_}---")
-        for monkey in monkeys:
-            monkey.inspect2()
-        for monkey in monkeys:
-            print(f"{monkey.monkey_id}:", ", ".join([str(item.worry_level) for item in monkey.items]))
+    fix_worry = reduce((lambda x, y: x * y), [m.worry_test for m in monkeys])
+    for monkey in monkeys:
+        monkey.fix_worry = fix_worry
 
-        print([m.inspected for m in monkeys])
+    for _ in range(10000):
+        for monkey in monkeys:
+            monkey.inspect()
 
     print(reduce((lambda x, y: x * y), sorted([m.inspected for m in monkeys], reverse=True)[:2]))
 
 
 if __name__ == '__main__':
-    #day11_1(sys.argv[1])
+    day11_1(sys.argv[1])
     day11_2(sys.argv[1])
 
