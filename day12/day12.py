@@ -9,7 +9,7 @@ The idea is to parse the input heightmap, convert each height which are letter t
  - the current position has a value of 0 (although the current position is stated to have an elevation a, it does not
    change the result)
  - any heights from a to z have a value respectively from 1 to 26
- - the end position has a value of 0 (same as current position, although it is assumed to have an elevation z)
+ - the end position has a value of 27 (same as current position, although it is assumed to have an elevation z)
 
 The heightmap is to put in a numpy array with the numerical values mentioned above.
 We use the Dijkstra's algorithm in both parts but in different ways
