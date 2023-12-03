@@ -98,7 +98,8 @@ def find_gears(schem):
             # Find a gear ('*' symbol)
             if schem[x, y] == '*':
                 numbers = []
-                # Search in the neighborhood the gear if we have digit a call the parse_number to get the number
+                # Search in the neighborhood the gear if we have digit and call the parse_number function
+                # to get the number
                 for coord in [
                     (x - 1, y - 1),
                     (x, y - 1),
