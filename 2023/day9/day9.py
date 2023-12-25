@@ -17,7 +17,7 @@ def parse_report(file):
     return report
 
 
-def find_extrapolated_value(values):
+def find_extrapolated_value(values, backward_mode=False):
     # We just focus the last value from each difference iteration.
     # This is the only value we need to compute the extrapolated value.
     last_values = []
@@ -25,8 +25,10 @@ def find_extrapolated_value(values):
     # Start with the current values as the given list of values.
     current_values = values
 
-    # First we need to add the last value of the current values list to the last_values list.
-    last_values.append(current_values[-1])
+    # For the part 1, since we're looking forward, we need to add the last value of the current values list
+    # to the last_values list. For part 2, it will be the other way around, we're backward so we need to add
+    # the first value instead.
+    last_values.append(current_values[-1 if not backward_mode else 0])
 
     # Continue the loop until all values in the current values list are the same.
     # If this condition is true, this means that we have the seme difference for each number, which will
@@ -34,24 +36,22 @@ def find_extrapolated_value(values):
     # But we don't need to go further to this last step and stop immediately as this is now necessary for
     # computing the extrapolated value.
     while len(set(current_values)) > 1:
-        # Initialize an empty list to store the differences between adjacent values.
-        next_values = []
-
         # Compute the differences between adjacent values and store them in next_values list.
-        for n in range(len(current_values) - 1):
-            next_values.append(current_values[n + 1] - current_values[n])
+        current_values = [current_values[n + 1] - current_values[n] for n in range(len(current_values) - 1)]
 
-        # Update the current values list with the computed differences.
-        current_values = next_values
-
-        # Add the last value of the current values list to the last_values list.
-        last_values.append(current_values[-1])
+        # Populate the last_values list in the same way we did just before the while loop
+        last_values.append(current_values[-1 if not backward_mode else 0])
 
     extrapolated_value = 0
 
     # Sum up the values in the last values in reverse order.
-    for last_value in reversed(last_values):
-        extrapolated_value += last_value
+    if not backward_mode:
+        for last_value in reversed(last_values):
+            extrapolated_value += last_value
+    else:
+        extrapolated_value = last_values[-1]
+        for last_value in list(reversed(last_values))[1:]:
+            extrapolated_value = last_value - extrapolated_value
 
     # Return the computed extrapolated value.
     return extrapolated_value
@@ -67,10 +67,15 @@ def day9_1(file):
 
 
 def day9_2(file):
-    print(parse_report(file))
+    report = parse_report(file)
+    extrapolated_values = 0
+    for values in report:
+        extrapolated_values += find_extrapolated_value(values, backward_mode=True)
+
+    print(extrapolated_values)
 
 
 if __name__ == '__main__':
     day9_1(sys.argv[1])
-    #day9_2(sys.argv[1])
+    day9_2(sys.argv[1])
 
