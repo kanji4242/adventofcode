@@ -36,7 +36,7 @@ def partitions_with_zeroes(n, k):
     # partitions(n, k) : The first and last partitions will be greater than 0
     # partitions(n, k-1) with 0 at first : The first partition will be 0 and the last partitions greater than 0
     # partitions(n, k-1) with 0 at last : The first partition greater than 0 and the last partitions will be 0
-    # partitions(n, k-1) with 0 at first and last : The first and last partitions will both be 0
+    # partitions(n, k-2) with 0 at first and last : The first and last partitions will both be 0
     return list(partitions(n, k)) + list([[0] + p for p in partitions(n, k - 1)]) + \
            list([p + [0] for p in partitions(n, k - 1)]) + list([[0] + p + [0] for p in partitions(n, k - 2)])
 
