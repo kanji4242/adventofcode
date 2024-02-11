@@ -210,7 +210,7 @@ class Layout:
                         beam.move()
 
     def activate_contraption(self, start_coord, direction):
-        # This method appears to activate a contraption, starting from a specified coordinate and direction.
+        # This method activate the contraption, starting from a single beam at a specified coordinate and direction.
         # It iterates through a loop, moving beams according to certain rules until a termination condition is met.
         # The termination conditions include a maximum number of fixed energized cells or a maximum number of beams.
 
