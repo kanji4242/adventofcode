@@ -40,7 +40,7 @@ def roll_can_removed(grid, x, y):
     grid_adjacent = grid[max(0, x - 1):min(x + 2, grid.shape[0]), max(0, y - 1):min(y + 2, grid.shape[1])]
     return np.count_nonzero(grid_adjacent == 1) <= 4
 
-def get_nb_rolls(grid):
+def get_nb_rolls_accessible(grid):
     nb_rolls = 0
 
     for y in range(grid.shape[1]):
@@ -72,7 +72,7 @@ def get_nb_rolls_removed(grid):
     return nb_rolls_removed
 
 def day4_1(file):
-    print(get_nb_rolls(parse_grid(file)))
+    print(get_nb_rolls_accessible(parse_grid(file)))
 
 def day4_2(file):
     print(get_nb_rolls_removed(parse_grid(file)))
